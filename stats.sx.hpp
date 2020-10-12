@@ -1,11 +1,14 @@
 #include <eosio/eosio.hpp>
-#include <eosio/singleton.hpp>
 #include <eosio/asset.hpp>
 
-using namespace eosio;
-using namespace std;
-
 namespace sx {
+
+using eosio::asset;
+using eosio::name;
+using eosio::symbol_code;
+using eosio::time_point_sec;
+
+using std::map;
 
 class [[eosio::contract("stats.sx")]] stats : public contract {
 
@@ -55,7 +58,7 @@ public:
      *
      * - `{name} contract` - contract name
      * - `{time_point_sec} last_modified` - last modified timestamp
-     * - `{symbol_code} fees` - base symbol code
+     * - `{symbol_code} base` - base symbol code
      * - `{map<symbol_code, double>} quotes` - quotes prices calculated relative to base
      *
      * ### example
