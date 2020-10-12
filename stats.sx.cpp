@@ -24,11 +24,8 @@ void sx::stats::update_volume( const name contract, const vector<asset> volumes,
     map<symbol_code, asset> volume;
     map<symbol_code, asset> fees;
 
-    // daily timestamp (at 0:00 UTC)
-    const time_point_sec timestamp = time_point_sec( (current_time_point().sec_since_epoch() / 86400) * 86400 );
-
-    // reset volume if new daily period
-    if ( timestamp == itr->timestamp ) {
+    // append current stats if exists
+    if ( itr != _volume.end() ) {
         volume = itr->volume;
         fees = itr->fees;
     }
@@ -47,14 +44,14 @@ void sx::stats::update_volume( const name contract, const vector<asset> volumes,
     if ( itr == _volume.end() ) {
         _volume.emplace( get_self(), [&]( auto & row ) {
             row.contract = contract;
-            row.timestamp = timestamp;
+            row.last_modified = current_time_point();
             row.transactions = 1;
             row.volume = volume;
             row.fees = fees;
         });
     } else {
         _volume.modify( itr, same_payer, [&]( auto & row ) {
-            row.timestamp = timestamp;
+            row.last_modified = current_time_point();
             row.transactions += 1;
             row.volume = volume;
             row.fees = fees;

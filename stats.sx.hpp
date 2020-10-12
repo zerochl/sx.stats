@@ -18,8 +18,8 @@ public:
     /**
      * ## TABLE `volume`
      *
-     * - `{name} contract` - contract name
-     * - `{time_point_sec} timestamp` - daily periods (86400 seconds)
+     * - `{name} contract` - (primary key) contract name
+     * - `{time_point_sec} last_modified` - last modified timestamp
      * - `{uint64_t} transactions` - total amount of transactions
      * - `{map<symbol_code, asset>} fees` - total fees collected
      * - `{map<symbol_code, asset>} volume` - total trading volume of assets
@@ -29,7 +29,7 @@ public:
      * ```json
      * {
      *     "contract": "swap.sx",
-     *     "timestamp": "2020-06-03T00:00:00",
+     *     "last_modified": "2020-06-03T00:00:00",
      *     "transactions": 110,
      *     "volume": [
      *         {"key": "EOS", "value": "25.0000 EOS"},
@@ -44,7 +44,7 @@ public:
      */
     struct [[eosio::table("volume")]] volume_row {
         name                            contract;
-        time_point_sec                  timestamp;
+        time_point_sec                  last_modified;
         uint64_t                        transactions;
         map<symbol_code, asset>         volume;
         map<symbol_code, asset>         fees;
@@ -56,7 +56,7 @@ public:
     /**
      * ## TABLE `spotprices`
      *
-     * - `{name} contract` - contract name
+     * - `{name} contract` - (primary key) contract name
      * - `{time_point_sec} last_modified` - last modified timestamp
      * - `{symbol_code} base` - base symbol code
      * - `{map<symbol_code, double>} quotes` - quotes prices calculated relative to base
