@@ -1,4 +1,5 @@
 #include <sx.swap/swap.sx.hpp>
+#include <sx.utils/utils.hpp>
 
 #include "stats.sx.hpp"
 
@@ -59,6 +60,67 @@ void sx::stats::update_volume( const name contract, const vector<asset> volumes,
     }
 }
 
+void sx::stats::on_flashlog( const name receiver,
+                             const asset borrow,
+                             const asset fee,
+                             const asset reserve )
+{
+    // require_auth( get_self() );
+    const name contract = get_first_receiver();
+    if ( contract.suffix() != "sx"_n) return;
+
+    update_flash( contract, borrow, fee, reserve );
+}
+
+void sx::stats::update_flash( const name contract, const asset borrow, const asset fee, const asset reserve )
+{
+    sx::stats::flash _flash( get_self(), get_self().value );
+    auto itr = _flash.find( contract.value );
+
+    // initial variables
+    map<symbol_code, asset> borrows;
+    map<symbol_code, asset> fees;
+    map<symbol_code, asset> reserves;
+
+    // append current stats if exists
+    if ( itr != _flash.end() ) {
+        borrows = itr->borrow;
+        fees = itr->fees;
+        reserves = itr->reserves;
+    }
+
+    // reserves (replace with current)
+    reserves[ reserve.symbol.code() ] = reserve;
+
+    // fees (add)
+    if ( fees.find( fee.symbol.code() ) != fees.end() ) fees[ fee.symbol.code() ] += fee;
+    else fees[ fee.symbol.code() ] = fee;
+
+    // borrow (add)
+    if ( borrows.find( borrow.symbol.code() ) != borrows.end() ) borrows[ borrow.symbol.code() ] += borrow;
+    else borrows[ borrow.symbol.code() ] = borrow;
+
+    // save table
+    if ( itr == _flash.end() ) {
+        _flash.emplace( get_self(), [&]( auto & row ) {
+            row.contract = contract;
+            row.last_modified = current_time_point();
+            row.transactions = 1;
+            row.borrow = borrows;
+            row.fees = fees;
+            row.reserves = reserves;
+        });
+    } else {
+        _flash.modify( itr, same_payer, [&]( auto & row ) {
+            row.last_modified = current_time_point();
+            row.transactions += 1;
+            row.borrow = borrows;
+            row.fees = fees;
+            row.reserves = reserves;
+        });
+    }
+}
+
 void sx::stats::update_spot_prices( const name contract )
 {
     sx::stats::spotprices _spotprices( get_self(), get_self().value );
@@ -85,7 +147,7 @@ void sx::stats::update_spot_prices( const name contract )
 
 bool sx::stats::is_token_exists( const name contract, const symbol_code symcode )
 {
-    swapSx::tokens _tokens( contract, contract.value );
+    sx::swap::tokens _tokens( contract, contract.value );
     return _tokens.find( symcode.raw() ) != _tokens.end();
 }
 
@@ -94,13 +156,13 @@ double sx::stats::get_spot_price( const name contract, const symbol_code base, c
     if ( !is_token_exists( contract, base ) ) return 0;
     if ( !is_token_exists( contract, quote ) ) return 0;
 
-    const auto [reserve_in, reserve_out] = swapSx::get_reserves( contract, base, quote );
-    return uniswap::asset_to_double( reserve_in ) / uniswap::asset_to_double( reserve_out );
+    const auto [reserve_in, reserve_out] = sx::swap::get_reserves( contract, base, quote );
+    return sx::utils::asset_to_double( reserve_in ) / sx::utils::asset_to_double( reserve_out );
 }
 
 map<symbol_code, double> sx::stats::get_spot_prices( const name contract, const symbol_code base )
 {
-    swapSx::tokens _tokens( contract, contract.value );
+    sx::swap::tokens _tokens( contract, contract.value );
     map<symbol_code, double> spot_prices;
 
     for ( const auto token : _tokens ) {

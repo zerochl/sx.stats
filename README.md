@@ -53,3 +53,34 @@
     ]
 }
 ```
+
+## TABLE `flash`
+
+- `{name} contract` - (primary key) contract name
+- `{time_point_sec} last_modified` - last modified timestamp
+- `{uint64_t} transactions` - total amount of transactions
+- `{map<symbol_code, asset>} borrow` - total borrowed asset from flash contract
+- `{map<symbol_code, asset>} fees` - total fees collected
+- `{map<symbol_code, asset>} reserves` - total reserve assets of flash contract
+
+### example
+
+```json
+{
+    "contract": "flash.sx",
+    "last_modified": "2020-06-03T00:00:00",
+    "transactions": 110,
+    "borrow": [
+        {"key": "EOS", "value": "2500.0000 EOS"},
+        {"key": "USDT", "value": "100.0000 USDT"}
+    ],
+    "fees": [
+        {"key": "EOS", "value": "0.1250 EOS"},
+        {"key": "USDT", "value": "0.0100 USDT"}
+    ],
+    "reserves": [
+        {"key": "EOS", "value": "900.0000 EOS"},
+        {"key": "USDT", "value": "200.0000 USDT"}
+    ]
+}
+```
