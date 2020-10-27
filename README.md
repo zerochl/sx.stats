@@ -6,6 +6,7 @@
 
 - [TABLE `volume`](#table-volume)
 - [TABLE `spotprices`](#table-spotprices)
+- [TABLE `flash`](#table-flash)
 
 ## TABLE `volume`
 
