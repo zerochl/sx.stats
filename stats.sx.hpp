@@ -129,6 +129,9 @@ public:
     };
     typedef eosio::multi_index< "spotprices"_n, spotprices_row > spotprices;
 
+    [[eosio::action]]
+    void erase( const name contract );
+
     /**
      * Notify contract when any token transfer notifiers relay contract
      */

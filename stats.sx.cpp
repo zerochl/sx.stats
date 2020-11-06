@@ -16,6 +16,22 @@ void sx::stats::on_swaplog( const name buyer,
     update_spot_prices( contract );
 }
 
+[[eosio::action]]
+void sx::stats::erase( const name contract )
+{
+    require_auth( get_self() );
+
+    sx::stats::volume _volume( get_self(), get_self().value );
+    sx::stats::spotprices _spotprices( get_self(), get_self().value );
+
+    auto volume = _volume.find( contract.value );
+    auto spotprices = _spotprices.find( contract.value );
+
+    check( volume != _volume.end() || spotprices != _spotprices.end(), "no contract available to erase");
+    if ( volume != _volume.end() ) _volume.erase( volume );
+    if ( spotprices != _spotprices.end() ) _spotprices.erase( spotprices );
+}
+
 void sx::stats::update_volume( const name contract, const vector<asset> volumes, const asset fee )
 {
     sx::stats::volume _volume( get_self(), get_self().value );
