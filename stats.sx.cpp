@@ -172,7 +172,7 @@ double sx::stats::get_spot_price( const name contract, const symbol_code base, c
     if ( !is_token_exists( contract, base ) ) return 0;
     if ( !is_token_exists( contract, quote ) ) return 0;
 
-    const auto [reserve_in, reserve_out] = sx::swap::get_reserves( contract, base, quote );
+    const auto [reserve_in, reserve_out] = sx::swap::get_virtual_reserves( contract, base, quote );
     return sx::utils::asset_to_double( reserve_in ) / sx::utils::asset_to_double( reserve_out );
 }
 
