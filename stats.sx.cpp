@@ -85,36 +85,31 @@ void sx::stats::on_flashlog( const name receiver,
     const name contract = get_first_receiver();
     if ( contract.suffix() != "sx"_n) return;
 
-    update_flash( contract, borrow, fee, reserve );
-}
-
-void sx::stats::update_flash( const name contract, const asset borrow, const asset fee, const asset reserve )
-{
     sx::stats::flash _flash( get_self(), get_self().value );
     auto itr = _flash.find( contract.value );
 
     // initial variables
-    map<symbol_code, asset> borrows;
-    map<symbol_code, asset> fees;
-    map<symbol_code, asset> reserves;
+    map<symbol_code, asset> _borrow;
+    map<symbol_code, asset> _fees;
+    map<symbol_code, asset> _reserves;
 
     // append current stats if exists
     if ( itr != _flash.end() ) {
-        borrows = itr->borrow;
-        fees = itr->fees;
-        reserves = itr->reserves;
+        _borrow = itr->borrow;
+        _fees = itr->fees;
+        _reserves = itr->reserves;
     }
 
     // reserves (replace with current)
-    reserves[ reserve.symbol.code() ] = reserve;
+    _reserves[ reserve.symbol.code() ] = reserve;
 
     // fees (add)
-    if ( fees.find( fee.symbol.code() ) != fees.end() ) fees[ fee.symbol.code() ] += fee;
-    else fees[ fee.symbol.code() ] = fee;
+    if ( _fees.find( fee.symbol.code() ) != _fees.end() ) _fees[ fee.symbol.code() ] += fee;
+    else _fees[ fee.symbol.code() ] = fee;
 
     // borrow (add)
-    if ( borrows.find( borrow.symbol.code() ) != borrows.end() ) borrows[ borrow.symbol.code() ] += borrow;
-    else borrows[ borrow.symbol.code() ] = borrow;
+    if ( _borrow.find( borrow.symbol.code() ) != _borrow.end() ) _borrow[ borrow.symbol.code() ] += borrow;
+    else _borrow[ borrow.symbol.code() ] = borrow;
 
     // save table
     if ( itr == _flash.end() ) {
@@ -122,17 +117,100 @@ void sx::stats::update_flash( const name contract, const asset borrow, const ass
             row.contract = contract;
             row.last_modified = current_time_point();
             row.transactions = 1;
-            row.borrow = borrows;
-            row.fees = fees;
-            row.reserves = reserves;
+            row.borrow = _borrow;
+            row.fees = _fees;
+            row.reserves = _reserves;
         });
     } else {
         _flash.modify( itr, same_payer, [&]( auto & row ) {
             row.last_modified = current_time_point();
             row.transactions += 1;
-            row.borrow = borrows;
-            row.fees = fees;
-            row.reserves = reserves;
+            row.borrow = _borrow;
+            row.fees = _fees;
+            row.reserves = _reserves;
+        });
+    }
+}
+
+void sx::stats::on_tradelog( const name executor,
+                             const asset borrow,
+                             const vector<asset> quantities,
+                             const vector<name> codes,
+                             const asset profit )
+{
+    // require_auth( get_self() );
+    const name contract = get_first_receiver();
+    if ( contract.suffix() != "sx"_n) return;
+
+    sx::stats::trades _trades( get_self(), get_self().value );
+    auto itr = _trades.find( contract.value );
+
+    // initial variables
+    map<symbol_code, asset>         _borrow;
+    map<symbol_code, asset>         _quantities;
+    map<name, uint64_t>             _codes;
+    map<symbol_code, uint64_t>      _symcodes;
+    map<name, uint64_t>             _executors;
+    map<symbol_code, asset>         _profits;
+
+    // append current stats if exists
+    if ( itr != _trades.end() ) {
+        _borrow = itr->borrow;
+        _quantities = itr->quantities;
+        _codes = itr->codes;
+        _symcodes = itr->symcodes;
+        _executors = itr->executors;
+        _profits = itr->profits;
+    }
+
+    // borrow (add)
+    if ( _borrow.find( borrow.symbol.code() ) != _borrow.end() ) _borrow[ borrow.symbol.code() ] += borrow;
+    else _borrow[ borrow.symbol.code() ] = borrow;
+
+    for ( const asset quantity : quantities ) {
+        // quantities (add)
+        if ( _quantities.find( quantity.symbol.code() ) != _quantities.end() ) _quantities[ quantity.symbol.code() ] += quantity;
+        else _quantities[ quantity.symbol.code() ] = quantity;
+
+        // symcodes (+1)
+        _symcodes[ quantity.symbol.code() ] += 1;
+    }
+
+    // codes (+1)
+    for ( const name code : codes ) {
+        _codes[ code ] += 1;
+    }
+
+    // executors (+1)
+    _executors[ executor ] += 1;
+
+    // profit (add)
+    if ( _profits.find( profit.symbol.code() ) != _profits.end() ) _profits[ profit.symbol.code() ] += profit;
+    else _profits[ profit.symbol.code() ] = profit;
+
+    // save table
+    if ( itr == _trades.end() ) {
+        _trades.emplace( get_self(), [&]( auto & row ) {
+            row.contract = contract;
+            row.last_modified = current_time_point();
+            row.transactions = 1;
+            row.borrow = _borrow;
+            row.quantities = _quantities;
+            row.codes = _codes;
+            row.symcodes = _symcodes;
+            row.executors = _executors;
+            row.profits = _profits;
+        });
+    } else {
+        _trades.modify( itr, same_payer, [&]( auto & row ) {
+            row.last_modified = current_time_point();
+            row.transactions += 1;
+            row.borrow = _borrow;
+            row.quantities = _quantities;
+            row.codes = _codes;
+            row.symcodes = _symcodes;
+            row.executors = _executors;
+            row.profits = _profits;
         });
     }
 }

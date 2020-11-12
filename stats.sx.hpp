@@ -129,6 +129,67 @@ public:
     };
     typedef eosio::multi_index< "spotprices"_n, spotprices_row > spotprices;
 
+    /**
+     * ## TABLE `trades`
+     *
+     * - `{name} contract` - (primary key) contract name
+     * - `{time_point_sec} last_modified` - last modified timestamp
+     * - `{uint64_t} transactions` - total amount of transactions
+     * - `{map<symbol_code, asset>} quantities` - total quantity traded
+     * - `{map<name, uint64_t>} codes` - total transactions per contract codes
+     * - `{map<symbol_code, uint64_t>} symbcodes` - total transactions per symbol code used
+     * - `{map<name, uint64_t>} executors` - total transactions per executor
+     * - `{map<symbol_code, asset>} profits` - total profits
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *     "contract": "basic.sx",
+     *     "last_modified": "2020-06-03T00:00:00",
+     *     "transactions": 640,
+     *     "borrow": [
+     *         {"key": "EOS", "value": "5030.3050 EOS"},
+     *         {"key": "USDT", "value": "400.0100 USDT"}
+     *     ]
+     *     "quantities": [
+     *         {"key": "EOS", "value": "5030.3050 EOS"},
+     *         {"key": "USDT", "value": "400.0100 USDT"}
+     *     ],
+     *     "codes": [
+     *         {"key": "swap.defi", "value": 512},
+     *         {"key": "swap.sx", "value": 100}
+     *     ],
+     *     "symcodes": [
+     *         {"key": "EOS", "value": 610},
+     *         {"key": "USDT", "value": 30}
+     *     ],
+     *     "executors": [
+     *         {"key": "myaccount", "value": 80},
+     *         {"key": "miner.sx", "value": 200}
+     *     ],
+     *     "profits": [
+     *         {"key": "EOS", "value": "50.3050 EOS"},
+     *         {"key": "USDT", "value": "4.0100 USDT"}
+     *     ]
+     * }
+     * ```
+     */
+    struct [[eosio::table("trades")]] trades_row {
+        name                            contract;
+        time_point_sec                  last_modified;
+        uint64_t                        transactions;
+        map<symbol_code, asset>         borrow;
+        map<symbol_code, asset>         quantities;
+        map<name, uint64_t>             codes;
+        map<symbol_code, uint64_t>      symcodes;
+        map<name, uint64_t>             executors;
+        map<symbol_code, asset>         profits;
+
+        uint64_t primary_key() const { return contract.value; }
+    };
+    typedef eosio::multi_index< "trades"_n, trades_row > trades;
+
     [[eosio::action]]
     void erase( const name contract );
 
@@ -150,13 +211,22 @@ public:
                       const asset fee,
                       const asset reserve );
 
+    /**
+     * Notify contract when any token transfer notifiers relay contract
+     */
+    [[eosio::on_notify("*::tradelog")]]
+    void on_tradelog( const name executor,
+                      const asset borrow,
+                      const vector<asset> quantities,
+                      const vector<name> codes,
+                      const asset profit );
+
 private:
     // volume
     void update_volume( const name contract, const vector<asset> volumes, const asset fee );
 
     // spotprices
     void update_spot_prices( const name contract );
-    void update_flash( const name contract, const asset borrow, const asset fee, const asset reserve );
     double get_spot_price( const name contract, const symbol_code base, const symbol_code quote );
     map<symbol_code, double> get_spot_prices( const name contract, const symbol_code base );
     bool is_token_exists( const name contract, const symbol_code symcode );
