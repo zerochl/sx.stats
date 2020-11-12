@@ -6,7 +6,7 @@
 [[eosio::action]]
 void sx::stats::swaplog( const name contract, const name buyer, const asset amount_in, const asset amount_out, const asset fee )
 {
-    require_auth( contract );
+    if ( !has_auth("network.sx"_n )) require_auth( contract );
     check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     update_volume( contract, vector<asset>{ amount_in, amount_out }, fee );
