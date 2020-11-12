@@ -3,14 +3,11 @@
 
 #include "stats.sx.hpp"
 
-void sx::stats::on_swaplog( const name buyer,
-                            const asset amount_in,
-                            const asset amount_out,
-                            const asset fee )
+[[eosio::action]]
+void sx::stats::swaplog( const name contract, const name buyer, const asset amount_in, const asset amount_out, const asset fee )
 {
-    // require_auth( get_self() );
-    const name contract = get_first_receiver();
-    if ( contract.suffix() != "sx"_n) return;
+    require_auth( contract );
+    check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     update_volume( contract, vector<asset>{ amount_in, amount_out }, fee );
     update_spot_prices( contract );
@@ -79,14 +76,11 @@ void sx::stats::update_volume( const name contract, const vector<asset> volumes,
     }
 }
 
-void sx::stats::on_flashlog( const name receiver,
-                             const asset borrow,
-                             const asset fee,
-                             const asset reserve )
+[[eosio::action]]
+void sx::stats::flashlog( const name contract, const name receiver, const asset borrow, const asset fee, const asset reserve )
 {
-    // require_auth( get_self() );
-    const name contract = get_first_receiver();
-    if ( contract.suffix() != "sx"_n) return;
+    require_auth( contract );
+    check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     sx::stats::flash _flash( get_self(), get_self().value );
     auto itr = _flash.find( contract.value );
@@ -138,7 +132,6 @@ void sx::stats::on_flashlog( const name receiver,
 [[eosio::action]]
 void sx::stats::tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit ) {
     require_auth( contract );
-
     check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     sx::stats::trades _trades( get_self(), get_self().value );
