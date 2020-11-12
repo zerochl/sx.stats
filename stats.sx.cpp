@@ -139,7 +139,7 @@ void sx::stats::on_flashlog( const name receiver,
 void sx::stats::tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit ) {
     require_auth( contract );
 
-    check( contract.suffix() != "sx"_n, "contract must be *.sx account");
+    check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     sx::stats::trades _trades( get_self(), get_self().value );
     auto itr = _trades.find( contract.value );
