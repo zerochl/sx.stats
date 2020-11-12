@@ -211,15 +211,9 @@ public:
                       const asset fee,
                       const asset reserve );
 
-    /**
-     * Notify contract when any token transfer notifiers relay contract
-     */
-    [[eosio::on_notify("*::tradelog")]]
-    void on_tradelog( const name executor,
-                      const asset borrow,
-                      const vector<asset> quantities,
-                      const vector<name> codes,
-                      const asset profit );
+    [[eosio::action]]
+    void tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit );
+    using tradelog_action = eosio::action_wrapper<"tradelog"_n, &sx::stats::tradelog>;
 
 private:
     // volume

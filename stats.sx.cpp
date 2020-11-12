@@ -23,13 +23,16 @@ void sx::stats::erase( const name contract )
 
     sx::stats::volume _volume( get_self(), get_self().value );
     sx::stats::spotprices _spotprices( get_self(), get_self().value );
+    sx::stats::trades _trades( get_self(), get_self().value );
 
     auto volume = _volume.find( contract.value );
     auto spotprices = _spotprices.find( contract.value );
+    auto trades = _trades.find( contract.value );
 
-    check( volume != _volume.end() || spotprices != _spotprices.end(), "no contract available to erase");
+    check( volume != _volume.end() || spotprices != _spotprices.end() || trades != _trades.end(), "no contract available to erase");
     if ( volume != _volume.end() ) _volume.erase( volume );
     if ( spotprices != _spotprices.end() ) _spotprices.erase( spotprices );
+    if ( trades != _trades.end() ) _trades.erase( trades );
 }
 
 void sx::stats::update_volume( const name contract, const vector<asset> volumes, const asset fee )
@@ -132,15 +135,11 @@ void sx::stats::on_flashlog( const name receiver,
     }
 }
 
-void sx::stats::on_tradelog( const name executor,
-                             const asset borrow,
-                             const vector<asset> quantities,
-                             const vector<name> codes,
-                             const asset profit )
-{
-    // require_auth( get_self() );
-    const name contract = get_first_receiver();
-    if ( contract.suffix() != "sx"_n) return;
+[[eosio::action]]
+void sx::stats::tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit ) {
+    require_auth( contract );
+
+    check( contract.suffix() != "sx"_n, "contract must be *.sx account");
 
     sx::stats::trades _trades( get_self(), get_self().value );
     auto itr = _trades.find( contract.value );
