@@ -151,9 +151,8 @@ public:
      *     "last_modified": "2020-06-03T00:00:00",
      *     "transactions": 640,
      *     "borrow": [
-     *         {"key": "EOS", "value": "5030.3050 EOS"},
-     *         {"key": "USDT", "value": "400.0100 USDT"}
-     *     ]
+     *         {"key": "EOS", "value": "49387.8252 EOS"}
+     *     ],
      *     "quantities": [
      *         {"key": "EOS", "value": "5030.3050 EOS"},
      *         {"key": "USDT", "value": "400.0100 USDT"}

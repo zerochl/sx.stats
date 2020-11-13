@@ -7,6 +7,7 @@
 - [TABLE `volume`](#table-volume)
 - [TABLE `spotprices`](#table-spotprices)
 - [TABLE `flash`](#table-flash)
+- [TABLE `trades`](#table-trades)
 
 ## TABLE `volume`
 
@@ -82,6 +83,51 @@
     "reserves": [
         {"key": "EOS", "value": "900.0000 EOS"},
         {"key": "USDT", "value": "200.0000 USDT"}
+    ]
+}
+```
+
+## TABLE `trades`
+
+- `{name} contract` - (primary key) contract name
+- `{time_point_sec} last_modified` - last modified timestamp
+- `{uint64_t} transactions` - total amount of transactions
+- `{map<symbol_code, asset>} quantities` - total quantity traded
+- `{map<name, uint64_t>} codes` - total transactions per contract codes
+- `{map<symbol_code, uint64_t>} symbcodes` - total transactions per symbol code used
+- `{map<name, uint64_t>} executors` - total transactions per executor
+- `{map<symbol_code, asset>} profits` - total profits
+
+### example
+
+```json
+{
+    "contract": "basic.sx",
+    "last_modified": "2020-06-03T00:00:00",
+    "transactions": 640,
+    "borrow": [
+        {"key": "EOS", "value": "5030.3050 EOS"},
+        {"key": "USDT", "value": "400.0100 USDT"}
+    ],
+    "quantities": [
+        {"key": "EOS", "value": "5030.3050 EOS"},
+        {"key": "USDT", "value": "400.0100 USDT"}
+    ],
+    "codes": [
+        {"key": "swap.defi", "value": 512},
+        {"key": "swap.sx", "value": 100}
+    ],
+    "symcodes": [
+        {"key": "EOS", "value": 610},
+        {"key": "USDT", "value": 30}
+    ],
+    "executors": [
+        {"key": "myaccount", "value": 80},
+        {"key": "miner.sx", "value": 200}
+    ],
+    "profits": [
+        {"key": "EOS", "value": "50.3050 EOS"},
+        {"key": "USDT", "value": "4.0100 USDT"}
     ]
 }
 ```
