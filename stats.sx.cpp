@@ -161,7 +161,10 @@ void sx::stats::tradelog( const name contract, const name executor, const asset 
 
     for ( const asset quantity : quantities ) {
         // quantities (add)
-        if ( _quantities.find( quantity.symbol.code() ) != _quantities.end() ) _quantities[ quantity.symbol.code() ] += quantity;
+        if ( _quantities.find( quantity.symbol.code() ) != _quantities.end() ) {
+            if(_quantities[ quantity.symbol.code() ].symbol == quantity.symbol)
+                _quantities[ quantity.symbol.code() ] += quantity;
+        }
         else _quantities[ quantity.symbol.code() ] = quantity;
 
         // symcodes (+1)
@@ -177,7 +180,10 @@ void sx::stats::tradelog( const name contract, const name executor, const asset 
     _executors[ executor ] += 1;
 
     // profit (add)
-    if ( _profits.find( profit.symbol.code() ) != _profits.end() ) _profits[ profit.symbol.code() ] += profit;
+    if ( _profits.find( profit.symbol.code() ) != _profits.end() ) {
+        if(_profits[ profit.symbol.code() ].symbol == profit.symbol)
+            _profits[ profit.symbol.code() ] += profit;
+    }
     else _profits[ profit.symbol.code() ] = profit;
 
     // save table
