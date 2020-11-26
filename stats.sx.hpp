@@ -191,6 +191,61 @@ public:
     };
     typedef eosio::multi_index< "trades"_n, trades_row > trades;
 
+    /**
+     * ## TABLE `gateway`
+     *
+     * - `{name} contract` - (primary key) contract name
+     * - `{time_point_sec} last_modified` - last modified timestamp
+     * - `{uint64_t} transactions` - total amount of transactions
+     * - `{map<symbol_code, pair<uint64_t, asset>>} ins` - input quantities - pair{# transactions, total quantities}
+     * - `{map<symbol_code, pair<uint64_t, asset>>} outs` - output quantities - pair{# transactions, total quantities}
+     * - `{map<name, uint64_t>} exchanges` - # transactions per exchange
+     * - `{map<symbol_code, asset>} savings` - total savings
+     * - `{map<symbol_code, asset>} fees` - total fees
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *     "contract": "gateway.sx",
+     *     "last_modified": "2020-06-03T00:00:00",
+     *     "transactions": 640,
+     *     "ins": [
+     *         {"key": "EOS", "value": {123, "49387.8252 EOS"}}
+     *     ],
+     *     "outs": [
+     *         {"key": "EOS", "value": {50, "5030.3050 EOS"}},
+     *         {"key": "USDT", "value": {111, "400.0100 USDT"}}
+     *     ],
+     *     "exchanges": [
+     *         {"key": "swap.defi", "value": 512},
+     *         {"key": "swap.sx", "value": 100}
+     *     ],
+     *     "savings": [
+     *         {"key": "EOS", "value": "10.0231 EOS"},
+     *         {"key": "USDT", "value": "12.2310 USDT"}
+     *     ],
+     *     "fees": [
+     *         {"key": "EOS", "value": "1.0231 EOS"},
+     *         {"key": "USDT", "value": "2.2310 USDT"}
+     *     ]
+     * }
+     * ```
+     */
+    struct [[eosio::table("gateway")]] gateway_row {
+        name                                    contract;
+        time_point_sec                          last_modified;
+        uint64_t                                transactions;
+        map<symbol_code, pair<uint64_t, asset>> ins;
+        map<symbol_code, pair<uint64_t, asset>> outs;
+        map<name, uint64_t>                     exchanges;
+        map<symbol_code, asset>                 savings;
+        map<symbol_code, asset>                 fees;
+
+        uint64_t primary_key() const { return contract.value; }
+    };
+    typedef eosio::multi_index< "gateway"_n, gateway_row > gateway;
+
     [[eosio::action]]
     void erase( const name contract );
 
@@ -223,10 +278,14 @@ public:
     [[eosio::action]]
     void tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit );
 
+    [[eosio::action]]
+    void gatewaylog(const asset in, const asset out, const vector<name> exchanges, const asset savings, const asset fee );
+
     // action wrappers
     using swaplog_action = eosio::action_wrapper<"swaplog"_n, &sx::stats::swaplog>;
     using flashlog_action = eosio::action_wrapper<"flashlog"_n, &sx::stats::flashlog>;
     using tradelog_action = eosio::action_wrapper<"tradelog"_n, &sx::stats::tradelog>;
+    using gatewaylog_action = eosio::action_wrapper<"gatewaylog"_n, &sx::stats::gatewaylog>;
 
 private:
     // volume

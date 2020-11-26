@@ -8,6 +8,7 @@
 - [TABLE `spotprices`](#table-spotprices)
 - [TABLE `flash`](#table-flash)
 - [TABLE `trades`](#table-trades)
+- [TABLE `gateway`](#table-gateway)
 
 ## TABLE `volume`
 
@@ -128,6 +129,46 @@
     "profits": [
         {"key": "EOS", "value": "50.3050 EOS"},
         {"key": "USDT", "value": "4.0100 USDT"}
+    ]
+}
+```
+
+## TABLE `gateway`
+
+- `{name} contract` - (primary key) contract name
+- `{time_point_sec} last_modified` - last modified timestamp
+- `{uint64_t} transactions` - total amount of transactions
+- `{map<symbol_code, pair<uint64_t, asset>>} ins` - input quantities - pair{# transactions, total quantities}
+- `{map<symbol_code, pair<uint64_t, asset>>} outs` - output quantities - pair{# transactions, total quantities}
+- `{map<name, uint64_t>} exchanges` - # transactions per exchange
+- `{map<symbol_code, asset>} savings` - total savings
+- `{map<symbol_code, asset>} fees` - total fees
+
+### example
+
+```json
+{
+    "contract": "gateway.sx",
+    "last_modified": "2020-06-03T00:00:00",
+    "transactions": 640,
+    "ins": [
+        {"key": "EOS", "value": [123, "49387.8252 EOS"]}
+    ],
+    "outs": [
+        {"key": "EOS", "value": [50, "5030.3050 EOS"]},
+        {"key": "USDT", "value": [111, "400.0100 USDT"]}
+    ],
+    "exchanges": [
+        {"key": "swap.defi", "value": 512},
+        {"key": "swap.sx", "value": 100}
+    ],
+    "savings": [
+        {"key": "EOS", "value": "10.0231 EOS"},
+        {"key": "USDT", "value": "12.2310 USDT"}
+    ],
+    "fees": [
+        {"key": "EOS", "value": "1.0231 EOS"},
+        {"key": "USDT", "value": "2.2310 USDT"}
     ]
 }
 ```

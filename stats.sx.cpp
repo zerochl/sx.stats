@@ -207,6 +207,87 @@ void sx::stats::tradelog( const name contract, const name executor, const asset 
     }
 }
 
+
+[[eosio::action]]
+void sx::stats::gatewaylog(const asset in, const asset out, const vector<name> exchanges, const asset savings,const asset fee ) {
+    const name contract = get_first_receiver();
+    require_auth( contract );
+
+    check( contract.suffix() != "sx"_n, "contract must be *.sx account");
+
+    sx::stats::gateway _gateway( get_self(), get_self().value );
+    auto itr = _gateway.find( contract.value );
+
+    // initial variables
+    map<symbol_code, pair<uint64_t, asset>> _ins;
+    map<symbol_code, pair<uint64_t, asset>> _outs;
+    map<name, uint64_t>                     _exchanges;
+    map<symbol_code, asset>                 _savings;
+    map<symbol_code, asset>                 _fees;
+
+    // append current stats if exists
+    if ( itr != _gateway.end() ) {
+        _ins = itr->ins;
+        _outs = itr->outs;
+        _exchanges = itr->exchanges;
+        _savings = itr->savings;
+        _fees = itr->fees;
+    }
+
+    if(_ins.count(in.symbol.code())) {
+        _ins[in.symbol.code()].first += 1;
+         if(_ins[in.symbol.code()].second.symbol == in.symbol) _ins[in.symbol.code()].second += in;  //check for exact symbol to avoid failing on OGX,4 vs OGX,8
+    }
+    else _ins[in.symbol.code()] = {1, in};
+
+    if(_outs.count(out.symbol.code())) {
+        _outs[out.symbol.code()].first += 1;
+        if(_outs[out.symbol.code()].second.symbol == out.symbol) _outs[out.symbol.code()].second += out;
+    }
+    else _outs[out.symbol.code()] = {1, out};
+
+    for(const auto& dex: exchanges) {
+        _exchanges[dex] += 1;
+    }
+
+    if(_savings.count(savings.symbol.code())){
+        if(_savings[ savings.symbol.code() ].symbol == savings.symbol) _savings[ savings.symbol.code() ] += savings;
+    }
+    else _savings[ savings.symbol.code() ] = savings;
+
+    if(fee.amount) {
+        if(_fees.count(fee.symbol.code())) {
+            if(_fees[ fee.symbol.code() ].symbol == fee.symbol) _fees[ fee.symbol.code() ] += fee;
+        }
+        else _fees[ fee.symbol.code() ] = fee;
+    }
+
+    // save table
+    if ( itr == _gateway.end() ) {
+        _gateway.emplace( get_self(), [&]( auto & row ) {
+            row.contract = contract;
+            row.last_modified = current_time_point();
+            row.transactions = 1;
+            row.ins = _ins;
+            row.outs = _outs;
+            row.exchanges = _exchanges;
+            row.savings = _savings;
+            row.fees = _fees;
+        });
+    } else {
+        _gateway.modify( itr, same_payer, [&]( auto & row ) {
+            row.last_modified = current_time_point();
+            row.transactions += 1;
+            row.ins = _ins;
+            row.outs = _outs;
+            row.exchanges = _exchanges;
+            row.savings = _savings;
+            row.fees = _fees;
+        });
+    }
+
+}
+
 void sx::stats::update_spot_prices( const name contract )
 {
     sx::stats::spotprices _spotprices( get_self(), get_self().value );
