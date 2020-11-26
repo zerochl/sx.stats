@@ -298,7 +298,7 @@ void sx::stats::update_spot_prices( const name contract )
 {
     sx::stats::spotprices _spotprices( get_self(), get_self().value );
     auto itr = _spotprices.find( contract.value );
-    const symbol_code base = symbol_code{"USDT"};
+    const symbol_code base = contract == "swap.sx"_n ? symbol_code{"EOS"} : symbol_code{"USDT"};
     const map<symbol_code, double> quotes = get_spot_prices( contract, base );
 
     // save table
