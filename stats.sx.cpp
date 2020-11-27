@@ -215,8 +215,7 @@ void sx::stats::tradelog( const name contract, const name executor, const asset 
 
 
 [[eosio::action]]
-void sx::stats::gatewaylog(const asset in, const asset out, const vector<name> exchanges, const asset savings,const asset fee ) {
-    const name contract = get_first_receiver();
+void sx::stats::gatewaylog(const name contract, const asset in, const asset out, const vector<name> exchanges, const asset savings, const asset fee ) {
     require_auth( contract );
 
     check( contract.suffix() != "sx"_n, "contract must be *.sx account");

@@ -279,7 +279,7 @@ public:
     void tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit );
 
     [[eosio::action]]
-    void gatewaylog(const asset in, const asset out, const vector<name> exchanges, const asset savings, const asset fee );
+    void gatewaylog(const name contract, const asset in, const asset out, const vector<name> exchanges, const asset savings, const asset fee );
 
     // action wrappers
     using swaplog_action = eosio::action_wrapper<"swaplog"_n, &sx::stats::swaplog>;
