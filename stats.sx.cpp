@@ -218,7 +218,7 @@ void sx::stats::tradelog( const name contract, const name executor, const asset 
 void sx::stats::gatewaylog(const name contract, const asset in, const asset out, const vector<name> exchanges, const asset savings, const asset fee ) {
     require_auth( contract );
 
-    check( contract.suffix() != "sx"_n, "contract must be *.sx account");
+    check( contract.suffix() == "sx"_n, "contract must be *.sx account");
 
     sx::stats::gateway _gateway( get_self(), get_self().value );
     auto itr = _gateway.find( contract.value );
