@@ -1,3 +1,4 @@
+#include <eosio.token/eosio.token.hpp>
 #include <sx.swap/swap.sx.hpp>
 #include <sx.utils/utils.hpp>
 
@@ -76,14 +77,15 @@ void sx::stats::update_volume( const name contract, const vector<asset> volumes,
     }
 }
 
-[[eosio::action]]
-void sx::stats::flashlog( const name contract, const name receiver, const asset borrow, const asset fee, const asset reserve )
+void sx::stats::on_flashlog( const name code, const name receiver, const extended_asset amount, const asset fee )
 {
-    require_auth( contract );
-    check( contract.suffix() == "sx"_n, "contract must be *.sx account");
+    check( code.suffix() == "sx"_n, "code must be *.sx account");
 
     sx::stats::flash _flash( get_self(), get_self().value );
-    auto itr = _flash.find( contract.value );
+    auto itr = _flash.find( code.value );
+
+    const asset borrow = amount.quantity;
+    const asset reserve = eosio::token::get_balance( amount.contract, code, amount.quantity.symbol.code() );
 
     // initial variables
     map<symbol_code, asset> _borrow;
@@ -111,7 +113,7 @@ void sx::stats::flashlog( const name contract, const name receiver, const asset 
     // save table
     if ( itr == _flash.end() ) {
         _flash.emplace( get_self(), [&]( auto & row ) {
-            row.contract = contract;
+            row.contract = code;
             row.last_modified = current_time_point();
             row.transactions = 1;
             row.borrow = _borrow;

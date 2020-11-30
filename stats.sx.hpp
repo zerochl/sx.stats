@@ -1,16 +1,10 @@
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
 
+using namespace eosio;
+using namespace std;
+
 namespace sx {
-
-using eosio::asset;
-using eosio::name;
-using eosio::symbol_code;
-using eosio::time_point_sec;
-using eosio::contract;
-
-using std::map;
-using std::vector;
 
 class [[eosio::contract("stats.sx")]] stats : public contract {
 
@@ -272,8 +266,8 @@ public:
     [[eosio::action]]
     void swaplog( const name contract, const name buyer, const asset amount_in, const asset amount_out, const asset fee );
 
-    [[eosio::action]]
-    void flashlog( const name contract, const name receiver, const asset borrow, const asset fee, const asset reserve );
+    [[eosio::on_notify("flash.sx::flashlog")]]
+    void on_flashlog( const name code, const name receiver, const extended_asset amount, const asset fee );
 
     [[eosio::action]]
     void tradelog( const name contract, const name executor, const asset borrow, const vector<asset> quantities, const vector<name> codes, const asset profit );
@@ -283,7 +277,6 @@ public:
 
     // action wrappers
     using swaplog_action = eosio::action_wrapper<"swaplog"_n, &sx::stats::swaplog>;
-    using flashlog_action = eosio::action_wrapper<"flashlog"_n, &sx::stats::flashlog>;
     using tradelog_action = eosio::action_wrapper<"tradelog"_n, &sx::stats::tradelog>;
     using gatewaylog_action = eosio::action_wrapper<"gatewaylog"_n, &sx::stats::gatewaylog>;
 
