@@ -266,6 +266,9 @@ public:
     [[eosio::action]]
     void swaplog( const name contract, const name buyer, const asset amount_in, const asset amount_out, const asset fee );
 
+    [[eosio::action]]
+    void clean( const name contract );
+
     [[eosio::on_notify("flash.sx::flashlog")]]
     void on_flashlog( const name code, const name receiver, const extended_asset amount, const asset fee );
 

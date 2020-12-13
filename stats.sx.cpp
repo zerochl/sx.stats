@@ -1,5 +1,6 @@
 #include <eosio.token/eosio.token.hpp>
 #include <sx.swap/swap.sx.hpp>
+#include <sx.vaults/vaults.sx.hpp>
 #include <sx.utils/utils.hpp>
 
 #include "stats.sx.hpp"
@@ -12,6 +13,21 @@ void sx::stats::swaplog( const name contract, const name buyer, const asset amou
 
     update_volume( contract, vector<asset>{ amount_in, amount_out }, fee );
     update_spot_prices( contract );
+}
+
+[[eosio::action]]
+void sx::stats::clean( const name contract )
+{
+    require_auth( get_self() );
+
+    sx::stats::flash _flash( get_self(), get_self().value );
+
+    auto itr = _flash.find( contract.value );
+    _flash.modify( itr, same_payer, [&]( auto & row ) {
+        row.borrow.erase(symbol_code{"USDT"});
+        row.fees.erase(symbol_code{"USDT"});
+        row.reserves.erase(symbol_code{"USDT"});
+    });
 }
 
 [[eosio::action]]
@@ -82,10 +98,13 @@ void sx::stats::on_flashlog( const name code, const name receiver, const extende
     check( code.suffix() == "sx"_n, "code must be *.sx account");
 
     sx::stats::flash _flash( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
+
     auto itr = _flash.find( code.value );
+    auto vault = _vault.find( amount.quantity.symbol.code().raw() );
 
     const asset borrow = amount.quantity;
-    const asset reserve = eosio::token::get_balance( amount.contract, code, amount.quantity.symbol.code() );
+    const asset reserve = vault->deposit.quantity;
 
     // initial variables
     map<symbol_code, asset> _borrow;
