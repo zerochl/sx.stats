@@ -98,7 +98,7 @@ void sx::stats::on_flashlog( const name code, const name receiver, const extende
     check( code.suffix() == "sx"_n, "code must be *.sx account");
 
     sx::stats::flash _flash( get_self(), get_self().value );
-    sx::vaults::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( "vaults.sx"_n, "vaults.sx"_n.value );
 
     auto itr = _flash.find( code.value );
     auto vault = _vault.find( amount.quantity.symbol.code().raw() );
